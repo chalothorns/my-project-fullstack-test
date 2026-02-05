@@ -17,12 +17,17 @@ export class UsersService {
   }
 
   async findAll() {
-    return this.prisma.user.findMany();
+    return this.prisma.user.findMany({
+      include: {
+        playHistories: true,
+        rewardHistories: true,
+      },
+    });
   }
 
   async findOne(id: number) {
     return this.prisma.user.findUnique({
-      where: { id: Number(id) },
+      where: { id: id },
       include: {
         playHistories: true,
         rewardHistories: true,
@@ -32,9 +37,9 @@ export class UsersService {
 
   async update(id: number, newScore: number, updateUserDto: UpdateUserDto) {
     return this.prisma.user.update({
-      where: { id: Number(id) },
+      where: { id: id },
       data: {
-        ...updateUserDto,
+        name: updateUserDto.name,
         totalScore: {
           increment: newScore,
         },
@@ -42,9 +47,26 @@ export class UsersService {
     });
   }
 
+  async resetScore(id: number) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.playHistory.deleteMany({
+        where: { userId: id },
+      });
+
+      await tx.rewardHistory.deleteMany({
+        where: { userId: id },
+      });
+
+      return tx.user.update({
+        where: { id },
+        data: { totalScore: 0 },
+      });
+    });
+  }
+
   remove(id: number) {
     return this.prisma.user.delete({
-      where: { id: Number(id) },
+      where: { id: id },
     });
   }
 }
