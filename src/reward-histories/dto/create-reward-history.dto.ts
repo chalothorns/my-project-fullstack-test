@@ -1,6 +1,6 @@
 export class CreateRewardHistoryDto {
   id?: number;
   rewardType: string;
-  claimedAAt?: Date;
+  claimedAt?: Date;
   userId: number;
 }
